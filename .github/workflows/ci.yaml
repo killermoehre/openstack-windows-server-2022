@@ -13,5 +13,5 @@ jobs:
     steps:
       - run: Install-PackageProvider -Force -Name ChocolateyGet
       - run: Import-PackageProvider -Force -Name ChocolateyGet
-      - run: Find-Package -Name '*mdt*'
-      - run: Install-Package -AcceptLicense -Force -ForceBootstrap -ProviderName ChocolateyGet -Name "mdt"
+      - run: Install-Package -AcceptLicense -Force -ForceBootstrap -ProviderName ChocolateyGet -Name "MDT"
+      - run: Start-BitsTransfer -Source https://software-static.download.prss.microsoft.com/sg/download/888969d5-f34g-4e03-ac9d-1f9786c66749/SERVER_EVAL_x64FRE_en-us.iso -Destination SERVER_EVAL_x64FRE_en-us.iso
