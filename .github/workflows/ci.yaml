@@ -11,5 +11,7 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
+      - run: Install-PackageProvider -Name "ChocolateyGet"
       - run: Get-PackageSource
       - run: Get-PackageProvider
+      - run: Install-Package -Name "mdt"
