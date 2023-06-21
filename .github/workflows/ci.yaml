@@ -13,4 +13,5 @@ jobs:
     steps:
       - run: Install-PackageProvider -Force -Name ChocolateyGet
       - run: Import-PackageProvider -Force -Name ChocolateyGet
-      - run: Install-Package -AcceptLicense -Force -ForceBootstrap -PackageManagementProvider ChocolateyGet -Name "mdt"
+      - run: Find-Package -Name '*mdt*'
+      - run: Install-Package -AcceptLicense -Force -ForceBootstrap -ProviderName ChocolateyGet -Name "mdt"
