@@ -11,7 +11,4 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - run: Install-PackageProvider -Name "ChocolateyGet" -Force
-      - run: Get-PackageSource
-      - run: Get-PackageProvider
-      - run: Install-Package -AcceptLicense -Force -Name "mdt"
+      - run: Install-Package -AcceptLicense -Force -ForceBootstrap -PackageManagementProvider chocolatey -Name "mdt"
