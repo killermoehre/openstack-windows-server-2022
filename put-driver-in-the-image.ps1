@@ -4,10 +4,10 @@ $windowsImageDriveLetter = ($windowsImageMount | Get-Volume).DriveLetter
 $virtioImageMount = Mount-DiskImage -ImagePath C:\virtio-win-0.1.240.iso -PassThru
 $virtioImageDriveLetter = ($virtioImageMount | Get-Volume).DriveLetter
 
-$installWim = Join-Path -Path $windowsImageDriveLetter -ChildPath "\sources\install.wim"
+$installWim = Join-Path -Path ${windowsImageDriveLetter}: -ChildPath "\sources\install.wim"
 
 Write-Output "Collecting Drivers to Install"
-$drivers = Get-ChildItem -Recurse -Path $virtioImageDriveLetter\*\2k22\amd64 -Include *.inf
+$drivers = Get-ChildItem -Recurse -Path ${virtioImageDriveLetter}:\*\2k22\amd64 -Include *.inf
 
 # get the images in the .wim to patch all of them
 $imagesInImage = Get-WindowsImage -ImagePath $installWim
