@@ -13,5 +13,5 @@ $drivers = Get-ChildItem -Recurse -Path ${virtioImageDriveLetter}:\*\2k22\amd64 
 $imagesInImage = Get-WindowsImage -ImagePath $installWim
 
 foreach ($image in $imagesInImage) {
-  Convert-WindowsImage -SourcePath $installWim -DiskLayout UEFI -Edition $image.ImageName -Drivers $drivers.FullName
+  Convert-WindowsImage -SourcePath $installWim -DiskLayout UEFI -Edition $image.ImageName -Driver $drivers.FullName
 }
