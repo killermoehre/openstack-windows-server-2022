@@ -14,12 +14,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install WIM2VHD module
         run: Install-Module -Force Convert-WindowsImage
-      - name: Add Chocolatey as Package Source
-        run: |2
-          Install-PackageProvider -Force -Name ChocolateyGet
-          Import-PackageProvider -Force -Name ChocolateyGet
       - name: Install the Microsoft Deployment Toolkit (MDT)
-        run: Install-Package -AcceptLicense -Force -ForceBootstrap -ProviderName ChocolateyGet -Name "MDT"
+        run: Install-ChocoPackage -Name "MDT"
       - name: Cache Windows Image
         id: cache-windows-image
         uses: actions/cache@v3
