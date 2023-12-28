@@ -1,7 +1,7 @@
 Write-Output "Mounting the ISOs"
-$windowsImageMount = Mount-DiskImage -ImagePath SERVER_EVAL_x64FRE_en-us.iso -PassThru
+$windowsImageMount = Mount-DiskImage -ImagePath C:\SERVER_EVAL_x64FRE_en-us.iso -PassThru
 $windowsImageDriveLetter = ($windowsImageMount | Get-Volume).DriveLetter
-$virtioImageMount = Mount-DiskImage -ImagePath virtio-win-0.1.240.iso -PassThru
+$virtioImageMount = Mount-DiskImage -ImagePath C:\virtio-win-0.1.240.iso -PassThru
 $virtioImageDriveLetter = ($virtioImageMount | Get-Volume).DriveLetter
 
 $installWim = Join-Path -Path $windowsImageDriveLetter -ChildPath "\sources\install.wim"

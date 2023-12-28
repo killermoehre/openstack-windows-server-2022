@@ -20,19 +20,19 @@ jobs:
         id: cache-windows-image
         uses: actions/cache@v3
         with:
-          path: SERVER_EVAL_x64FRE_en-us.iso
+          path: C:\SERVER_EVAL_x64FRE_en-us.iso
           key: SERVER_EVAL_x64FRE_en-us.iso
       - name: Download Windows Image
         if: steps.cache-windows-image.outputs.cache-hit != 'true'
-        run: Start-BitsTransfer -Source https://software-static.download.prss.microsoft.com/sg/download/888969d5-f34g-4e03-ac9d-1f9786c66749/SERVER_EVAL_x64FRE_en-us.iso -Destination SERVER_EVAL_x64FRE_en-us.iso
+        run: Start-BitsTransfer -Source https://software-static.download.prss.microsoft.com/sg/download/888969d5-f34g-4e03-ac9d-1f9786c66749/SERVER_EVAL_x64FRE_en-us.iso -Destination C:\SERVER_EVAL_x64FRE_en-us.iso
       - name: Cache VirtIO Driver Image
         id: cache-virtio-driver-image
         uses: actions/cache@v3
         with:
-          path: virtio-win-0.1.240.iso
+          path: C:\virtio-win-0.1.240.iso
           key: virtio-win-0.1.240.iso
       - name: Download Virtio Driver Image
         if: steps.cache-virtio-driver-image.outputs.cache-hot != 'true'
-        run: Start-BitsTransfer -Source https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.240-1/virtio-win-0.1.240.iso -Destination virtio-win-0.1.240.iso
+        run: Start-BitsTransfer -Source https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.240-1/virtio-win-0.1.240.iso -Destination C:\virtio-win-0.1.240.iso
       - name: Patch Windows Image
         run: .\put-driver-in-the-image.ps1
