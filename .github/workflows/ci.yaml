@@ -12,10 +12,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install WIM2VHD module
-        run: Install-Module -Force Convert-WindowsImage
       - name: Install the Microsoft Deployment Toolkit (MDT)
-        run: Install-ChocoPackage MDT
+        run: Install-Package -ProviderName chocolateyget MDT
+      - name: Install Qemu for not depending on Hyper-V
+        run: Install-Package -ProviderName chocolateyget qemu-img
       - name: Cache Windows Image
         id: cache-windows-image
         uses: actions/cache@v3
