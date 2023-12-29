@@ -33,6 +33,6 @@ $imagesInImage = Get-WindowsImage -ImagePath $installWim
 $convertedImages = [System.Collections.Generic.List[PSObject]]::new()
 
 foreach ($image in $imagesInImage) {
-  $convertedImage = Convert-WindowsImage -SourcePath $installWim -DiskLayout UEFI -Edition $image.ImageName -Driver $drivers.FullName -Debug
+  $convertedImage = Convert-WindowsImage -SourcePath $installWim -DiskLayout UEFI -Edition $image.ImageName -Driver $drivers.FullName -Debug -Verbose
   $convertedImages.add( $convertedImage )
 }
