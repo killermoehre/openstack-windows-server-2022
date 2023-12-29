@@ -1,12 +1,12 @@
 # Workaround a bug in Convert-WindowsImage https://github.com/MicrosoftDocs/Virtualization-Documentation/issues/1340
 # In the module, this only checks if Hyper-V is enabled or not. The value itself isn't even used.
 try {
-  Get-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\WinPE' -Name Version | Out-Null
+  Get-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\WinPE' -Name Version -ErrorAction Stop | Out-Null
 }
 catch [System.Management.Automation.PSArgumentException] {
   New-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\WinPE' -Name Version -Value X | Out-Null
 }
-catch [PathNotFound] {
+catch [System.Management.Automation.ItemNotFoundException] {
   New-Item -Path 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\WinPE' | Out-Null
   New-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\WinPE' -Name Version -Value X | Out-Null
 }
