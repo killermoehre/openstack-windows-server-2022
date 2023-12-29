@@ -1,3 +1,8 @@
+# Enable Debug Output
+$DebugPreference = 'Continue'
+# Disable Confirm Prompts
+$ConfirmPreference = 'None'
+
 # Workaround a bug in Convert-WindowsImage https://github.com/MicrosoftDocs/Virtualization-Documentation/issues/1340
 # In the module, this only checks if Hyper-V is enabled or not. The value itself isn't even used.
 try {
@@ -25,6 +30,9 @@ $drivers = Get-ChildItem -Recurse -Path ${virtioImageDriveLetter}:\*\2k22\amd64 
 # get the images in the .wim to patch all of them
 $imagesInImage = Get-WindowsImage -ImagePath $installWim
 
+$convertedImages = [System.Collections.Generic.List[PSObject]]::new()
+
 foreach ($image in $imagesInImage) {
-  Convert-WindowsImage -SourcePath $installWim -DiskLayout UEFI -Edition $image.ImageName -Driver $drivers.FullName
+  $convertedImage = Convert-WindowsImage -SourcePath $installWim -DiskLayout UEFI -Edition $image.ImageName -Driver $drivers.FullName -Debug
+  $convertedImages.add( $convertedImage )
 }
