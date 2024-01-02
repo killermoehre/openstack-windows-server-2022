@@ -73,11 +73,16 @@ foreach ($image in $imagesInImage) {
   $systemPartition = $systemPartition | Get-Partition
   $systemDrive = $systemPartition.AccessPaths[0].trimend("\").replace("\?", "??")
 
-  Write-Output "Write Image to Disk"
+  Write-Output "Writing Image to Disk"
   Expand-WindowsImage -ApplyPath $windowsDrive -CheckIntegrity -ImagePath $installWim -Name $imageName -SupportEa
 
-  Write-Output "Add VirtIO Drivers"
-  $virtioDrivers | Add-WindowsDriver -Path $windowsDrive -ForceUnsigned
+  Write-Output "Adding VirtIO Drivers"
+  Write-Output "::group::virtio-driver"
+  $virtioDrivers | ForEach-Object {
+    Write-Output $_.ToString()
+    Add-WindowsDriver -Path $windowsDrive -Driver $_.ToString() -ForceUnsigned
+  }
+  Write-Output "::endgroup::"
 
   Write-Output "Add aditional guest components"
   foreach ($msiToInstall in $msisToInstall) {
