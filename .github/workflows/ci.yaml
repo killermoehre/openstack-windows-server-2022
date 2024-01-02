@@ -7,6 +7,10 @@ name: CI
   workflow_dispatch:
   push:
 
+defaults:
+  run:
+    shell: pwsh
+
 jobs:
   build:
     runs-on: windows-latest
@@ -25,6 +29,10 @@ jobs:
       - name: Download Windows Image
         if: steps.cache-windows-image.outputs.cache-hit != 'true'
         run: Start-BitsTransfer -Source https://software-static.download.prss.microsoft.com/sg/download/888969d5-f34g-4e03-ac9d-1f9786c66749/SERVER_EVAL_x64FRE_en-us.iso -Destination C:\SERVER_EVAL_x64FRE_en-us.iso
+      - name: Mount Windows Image
+        run: |2
+          $diskImage = Mount-DiskImage -ImagePath C:\SERVER_EVAL_x64FRE_en-us.iso -PassThru
+          "SourceImageDrive=$(($diskImage | Get-Volume).DriveLetter):" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Cache VirtIO Driver Image
         id: cache-virtio-driver-image
         uses: actions/cache@v3
@@ -34,5 +42,10 @@ jobs:
       - name: Download Virtio Driver Image
         if: steps.cache-virtio-driver-image.outputs.cache-hot != 'true'
         run: Start-BitsTransfer -Source https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.240-1/virtio-win-0.1.240.iso -Destination C:\virtio-win-0.1.240.iso
+      - name: Mount Virtio Driver Image
+        run: |2
+          $diskImage = Mount-DiskImage -ImagePath C:\virtio-win-0.1.240.iso -PassThru
+          "VirtioImageDrive=$(($diskImage | Get-Volume).DriveLetter):" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Patch Windows Image
-        run: .\put-driver-in-the-image.ps1
+        run: |2
+          .\put-driver-in-the-image.ps1 -SourceImageDrive "$env:SourceImageDrive" -VirtioImageDrive "$env:VirtioImageDrive"
