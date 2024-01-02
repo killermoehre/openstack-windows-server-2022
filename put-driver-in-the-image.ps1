@@ -1,5 +1,5 @@
 #Requires -modules @{ ModuleName="Dism"; ModuleVersion="3.0" }
-#Requires -PSEdition Desktop
+#Requires -PSEdition Core
 #Requires -RunAsAdministrator
 
 param (
