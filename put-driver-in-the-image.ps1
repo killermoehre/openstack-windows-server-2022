@@ -57,7 +57,7 @@ foreach ($image in $imagesInImage) {
   $newDiskMounts.Add($newDiskMount) | Out-Null
   Initialize-Disk -Number $newDiskMount.Number -PartitionStyle GPT -PassThru -Confirm:$false -Verbose
 
-  Write-Output "Formatting new Disk"
+  Write-Output "::grpup::Formatting new Disk"
   [Microsoft.Management.Infrastructure.CimInstance]$systemPartition = New-Partition -DiskNumber $newDiskMount.Number -Size 256MB -GptType '{ebd0a0a2-b9e5-4433-87c0-68b6b72699c7}'
   Format-Volume -Partition $systemPartition -FileSystem FAT32 -Force -Confirm:$false
   $systemPartition | Set-Partition -GptType '{c12a7328-f81f-11d2-ba4b-00a0c93ec93b}'
@@ -65,6 +65,7 @@ foreach ($image in $imagesInImage) {
   New-Partition -DiskNumber $newDiskMount.Number -Size 128MB -GptType '{e3c9e316-0b5c-4db8-817d-f92df00215ae}'
   [Microsoft.Management.Infrastructure.CimInstance]$windowsPartition = New-Partition -DiskNumber $newDiskMount.Number -UseMaximumSize -GptType '{ebd0a0a2-b9e5-4433-87c0-68b6b72699c7}'
   [Microsoft.Management.Infrastructure.CimInstance]$windowsVolume = Format-Volume -Partition $windowsPartition -FileSystem NTFS -Force -Confirm:$false
+  Write-Output "::endgroup::"
 
   Write-Output "Assign Drive Letters to new Partitions"
   $windowsPartition | Add-PartitionAccessPath -AssignDriveLetter
@@ -76,19 +77,20 @@ foreach ($image in $imagesInImage) {
   Write-Output "Writing Image to Drive $($windowsDrive)"
   Expand-WindowsImage -ApplyPath $windowsDrive -CheckIntegrity -ImagePath $installWim -Name $imageName -SupportEa
 
-  Write-Output "Adding VirtIO Drivers"
-  Write-Output "::group::virtio-driver"
+  Write-Output "::group::Adding VirtIO Drivers"
   $virtioDrivers | ForEach-Object {
     Write-Output $_.ToString()
     Add-WindowsDriver -Path $windowsDrive -Driver $_.ToString() -ForceUnsigned | Out-Null
   }
   Write-Output "::endgroup::"
 
-  Write-Output "Add aditional guest components"
+  Write-Output "::group::Add aditional guest components"
   $msisToInstall | ForEach-Object {
     [string[]]$msiexecArguments = @(
       "/i",
       $_,
+      "/l!",
+      "CON",
       "/qn",
       "/norestart",
       "TARGETDIR=$($windowsDrive)"
@@ -96,8 +98,9 @@ foreach ($image in $imagesInImage) {
     Write-Output "Running msiexec with $($msiexecArguments)"
     Start-Process -FilePath msiexec -ArgumentList $msiexecArguments -NoNewWindow -Wait
   }
+  Write-Output "::endgroup::"
 
-  Write-Output "Add Bootloader"
+  Write-Output "::group::Add Bootloader"
   [string[]]$bcdbootArguments = @(
     "$($windowsDrive)\Windows",
     "/s", $systemDrive,
@@ -105,10 +108,13 @@ foreach ($image in $imagesInImage) {
     "/f", "UEFI"
   )
   Start-Process -FilePath bcdboot.exe -ArgumentList $bcdbootArguments -NoNewWindow -Wait
+  Write-Output "::endgroup::"
 
-  Write-Output "Finalize Disk"
+  Write-Output "::group::Finalize Disk"
   $newDiskMount | Dismount-DiskImage
   $newDiskMounts.Remove($newDiskMount)
   [string[]]$qemuImgConvertArguments = @("convert", "-f", "vhdx", "-O", "qcow2", "`"$imageFile`"", "`"$($imageName).qcow2`"")
   Start-Process -FilePath qemu-img.exe -ArgumentList $qemuImgConvertArguments -NoNewWindow -Wait
+  Get-Item $($imageName).qcow2
+  Write-Output "::endgroup::"
 }
