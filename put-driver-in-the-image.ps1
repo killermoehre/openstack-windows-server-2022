@@ -50,11 +50,11 @@ foreach ($image in $imagesInImage) {
   [string]$imageName = $image.ImageName
   [System.IO.FileInfo]$imageFile = "${imageName}.vhdx"
 
-  Write-Output "Creating new Hard Disk"
-  [string[]]$qemuImgCreateArguments = @("create", "-f", "vhdx", $imageFile, "40G")
+  [string[]]$qemuImgCreateArguments = @("create", "-f", "vhdx", "`"$imageFile`"", "40G")
+  Write-Output "Creating new Hard Disk with qemu-img.exe $($qemuImgCreateArguments)"
   Start-Process -FilePath qemu-img.exe -ArgumentList $qemuImgCreateArguments -NoNewWindow -Wait
   [Microsoft.Management.Infrastructure.CimInstance]$newDiskMount = Mount-DiskImage -ImagePath $PWD\$imageFile -PassThru
-  $newDiskMounts.Add($newDiskMount)
+  $newDiskMounts.Add($newDiskMount) | Out-Null
   Initialize-Disk -Number $newDiskMount.Number -PartitionStyle GPT -PassThru -Confirm:$false -Verbose
 
   Write-Output "Formatting new Disk"
@@ -73,7 +73,7 @@ foreach ($image in $imagesInImage) {
   [Microsoft.Management.Infrastructure.CimInstance]$systemPartition = $systemPartition | Get-Partition
   [System.IO.DriveInfo]$systemDrive = $systemPartition.AccessPaths[0].trimend("\").replace("\?", "??")
 
-  Write-Output "Writing Image to Disk"
+  Write-Output "Writing Image to Drive $($windowsDrive)"
   Expand-WindowsImage -ApplyPath $windowsDrive -CheckIntegrity -ImagePath $installWim -Name $imageName -SupportEa
 
   Write-Output "Adding VirtIO Drivers"
@@ -109,6 +109,6 @@ foreach ($image in $imagesInImage) {
   Write-Output "Finalize Disk"
   $newDiskMount | Dismount-DiskImage
   $newDiskMounts.Remove($newDiskMount)
-  [string[]]$qemuImgConvertArguments = @("convert", "-f", "vhdx", "-O", "qcow2", $imageFile, "$($imageName).qcow2")
+  [string[]]$qemuImgConvertArguments = @("convert", "-f", "vhdx", "-O", "qcow2", "`"$imageFile`"", "`"$($imageName).qcow2`"")
   Start-Process -FilePath qemu-img.exe -ArgumentList $qemuImgConvertArguments -NoNewWindow -Wait
 }
