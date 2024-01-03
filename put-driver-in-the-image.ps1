@@ -11,8 +11,8 @@ param (
   [System.IO.DriveInfo]$VirtioImageDrive
 )
 
-# Enable Debug Output
-[string]$DebugPreference = 'Continue'
+# Enable Debug Output with `Continue`
+[string]$DebugPreference = 'SilentContinue'
 # Disable Confirm Prompts
 [string]$ConfirmPreference = 'None'
 
@@ -61,7 +61,7 @@ $imagesInImage | ForEach-Object {
   $null
 } {
   [string]$imageName = $PSItem.ImageName
-  [System.IO.FileInfo]$imageFile = "${imageName}.vhdx"
+  [System.IO.FileInfo]$imageFile = $imageName + ".vhdx"
 
   [string[]]$qemuImgCreateArguments = @("create", "-f", "vhdx", "`"$imageFile`"", "40G")
   Write-Output "Creating new Hard Disk with qemu-img.exe $($qemuImgCreateArguments)"
@@ -107,7 +107,7 @@ $imagesInImage | ForEach-Object {
       "/i",
       $PSItem,
       "/l!",
-      $(Join-Path -Path $logDir -ChildPath $($PSItem.Name + ".txt")),
+      $(Join-Path -Path $logDir -ChildPath $($imageName + "." + $PSItem.Name + ".txt")),
       "/qn",
       "/norestart",
       "ROOTDRIVE=$($windowsDrive)\",
