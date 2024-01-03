@@ -107,7 +107,7 @@ $imagesInImage | ForEach-Object {
       "/i",
       $PSItem,
       "/l!",
-      $(Join-Path -Path $logDir -ChildPath $($imageName + "." + $PSItem.Name + ".txt")),
+      "`"$(Join-Path -Path $logDir -ChildPath $($imageName + "." + $PSItem.Name + ".txt"))`"",
       "/qn",
       "/norestart",
       "ROOTDRIVE=$($windowsDrive)\",
