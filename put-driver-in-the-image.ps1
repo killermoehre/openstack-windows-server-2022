@@ -18,8 +18,9 @@ param (
 
 [System.IO.DirectoryInfo]$logDir = Join-Path -Path $env:TEMP -ChildPath transcript
 New-Item -Path $logDir -ItemType Directory -Force
+"LogDir=$($logdir.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
 [System.IO.FileInfo]$logFile = (Start-Transcript -OutputDirectory $logDir -IncludeInvocationHeader).Path
-"LogFile=$($logFile)" | Out-File -FilePath $env:GITHUB_ENV -Append 
+"LogFile=$($logFile)" | Out-File -FilePath $env:GITHUB_ENV -Append
 
 [System.IO.FileInfo]$installWim = Join-Path -Path $SourceImageDrive -ChildPath "\sources\install.wim" -Resolve
 
@@ -62,7 +63,7 @@ $imagesInImage | ForEach-Object {
   $newDiskMounts.Add($newDiskMount) | Out-Null
   Initialize-Disk -Number $newDiskMount.Number -PartitionStyle GPT -PassThru -Confirm:$false -Verbose
 
-  Write-Output "::grpup::Formatting new Disk"
+  Write-Output "::group::Formatting new Disk"
   [Microsoft.Management.Infrastructure.CimInstance]$systemPartition = New-Partition -DiskNumber $newDiskMount.Number -Size 256MB -GptType '{ebd0a0a2-b9e5-4433-87c0-68b6b72699c7}'
   Format-Volume -Partition $systemPartition -FileSystem FAT32 -Force -Confirm:$false
   $systemPartition | Set-Partition -GptType '{c12a7328-f81f-11d2-ba4b-00a0c93ec93b}'
@@ -82,7 +83,7 @@ $imagesInImage | ForEach-Object {
   Write-Output "Writing Image to Drive $($windowsDrive)"
   Expand-WindowsImage -ApplyPath $windowsDrive -CheckIntegrity -ImagePath $installWim -Name $imageName -SupportEa
 
-  
+
   $virtioDrivers | ForEach-Object {
     Write-Output "::group::Adding VirtIO Drivers"
   } {
@@ -99,7 +100,7 @@ $imagesInImage | ForEach-Object {
       "/i",
       $PSItem,
       "/l!",
-      $logFile,
+      $(Join-Path -Path $logDir -ChildPath $($PSItem.Name + ".txt")),
       "/qn",
       "/norestart",
       "TARGETDIR=$($windowsDrive)"

@@ -51,6 +51,6 @@ jobs:
           .\put-driver-in-the-image.ps1 -SourceImageDrive "$env:SourceImageDrive" -VirtioImageDrive "$env:VirtioImageDrive"
       - uses: actions/upload-artifact@v4
         with:
-          name: logfile.txt
-          path: ${{ env.LogFile }}
+          name: build-logs
+          path: ${{ env.LogDir }}/*
         if: ${{ always() }}
