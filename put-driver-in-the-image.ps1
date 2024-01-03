@@ -58,6 +58,8 @@ trap {
 }
 
 $imagesInImage | ForEach-Object {
+  $null
+} {
   [string]$imageName = $PSItem.ImageName
   [System.IO.FileInfo]$imageFile = "${imageName}.vhdx"
 
@@ -66,7 +68,7 @@ $imagesInImage | ForEach-Object {
   Start-Process -FilePath qemu-img.exe -ArgumentList $qemuImgCreateArguments -NoNewWindow -Wait
   [Microsoft.Management.Infrastructure.CimInstance]$newDiskMount = Mount-DiskImage -ImagePath $PWD\$imageFile -PassThru
   $newDiskMounts.Add($newDiskMount) | Out-Null
-  Initialize-Disk -Number $newDiskMount.Number -PartitionStyle GPT -PassThru -Confirm:$false -Verbose
+  Initialize-Disk -Number $newDiskMount.Number -PartitionStyle GPT -PassThru -Confirm:$false
 
   Write-Output "::group::Formatting new Disk"
   [Microsoft.Management.Infrastructure.CimInstance]$systemPartition = New-Partition -DiskNumber $newDiskMount.Number -Size 256MB -GptType '{ebd0a0a2-b9e5-4433-87c0-68b6b72699c7}'
@@ -133,6 +135,7 @@ $imagesInImage | ForEach-Object {
   $newDiskMounts.Remove($newDiskMount)
   [string[]]$qemuImgConvertArguments = @("convert", "-f", "vhdx", "-O", "qcow2", "`"$imageFile`"", "`"$($imageName).qcow2`"")
   Start-Process -FilePath qemu-img.exe -ArgumentList $qemuImgConvertArguments -NoNewWindow -Wait
-  Get-Item $($imageName).qcow2
   Write-Output "::endgroup::"
+} {
+  Get-ChildItem
 }
