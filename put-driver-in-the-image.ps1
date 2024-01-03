@@ -38,7 +38,12 @@ $msisToInstall.Add([System.IO.FileInfo]$(Join-Path -Path $VirtioImageDrive -Chil
 # get the images in the .wim to patch all of them
 $imagesInImage = New-Object -TypeName System.Collections.ArrayList
 Get-WindowsImage -ImagePath $installWim | ForEach-Object {
+  Write-Output "::group::Images in Image"
+} {
+  Write-Output $PSItem
   $imagesInImage.Add([Microsoft.Dism.Commands.BasicImageInfoObject]$PSItem) | Out-Null
+} {
+  Write-Output "::endgroup::"
 }
 
 $newDiskMounts = New-Object -TypeName System.Collections.ArrayList
@@ -103,7 +108,9 @@ $imagesInImage | ForEach-Object {
       $(Join-Path -Path $logDir -ChildPath $($PSItem.Name + ".txt")),
       "/qn",
       "/norestart",
-      "TARGETDIR=$($windowsDrive)"
+      "ROOTDRIVE=$($windowsDrive)\",
+      "NOCOMPANYNAME=1",
+      "NOUSERNAME=1"
     )
     Write-Output "Running msiexec with $($msiexecArguments)"
     Start-Process -FilePath msiexec -ArgumentList $msiexecArguments -NoNewWindow -Wait
