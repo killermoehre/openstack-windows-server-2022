@@ -49,3 +49,8 @@ jobs:
       - name: Patch Windows Image
         run: |2
           .\put-driver-in-the-image.ps1 -SourceImageDrive "$env:SourceImageDrive" -VirtioImageDrive "$env:VirtioImageDrive"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: logfile.txt
+          path: ${{ env.LogFile }}
+        if: ${{ always() }}

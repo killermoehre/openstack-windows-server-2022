@@ -4,10 +4,10 @@
 
 param (
   [Parameter(Mandatory = $true, HelpMessage = "Drive Letter (with colon) of the ISO containing install.wim")]
-  [ValidateScript({ Test-Path $_ })]
+  [ValidateScript({ Test-Path $PSItem })]
   [System.IO.DriveInfo]$SourceImageDrive,
   [Parameter(Mandatory = $true, HelpMessage = "Drive Letter (with colon) of the ISO containing the VirtIO drivers and guest-agent MSI")]
-  [ValidateScript({ Test-Path $_ })]
+  [ValidateScript({ Test-Path $PSItem })]
   [System.IO.DriveInfo]$VirtioImageDrive
 )
 
@@ -16,12 +16,17 @@ param (
 # Disable Confirm Prompts
 [string]$ConfirmPreference = 'None'
 
+[System.IO.DirectoryInfo]$logDir = Join-Path -Path $env:TEMP -ChildPath transcript
+New-Item -Path $logDir -ItemType Directory -Force
+[System.IO.FileInfo]$logFile = (Start-Transcript -OutputDirectory $logDir -IncludeInvocationHeader).Path
+"LogFile=$($logFile)" | Out-File -FilePath $env:GITHUB_ENV -Append 
+
 [System.IO.FileInfo]$installWim = Join-Path -Path $SourceImageDrive -ChildPath "\sources\install.wim" -Resolve
 
 Write-Output "Collecting Drivers to Install"
 $virtioDrivers = New-Object -TypeName System.Collections.ArrayList
 Get-ChildItem -Recurse -Path ${VirtioImageDrive}\*\2k22\amd64 -Include *.inf | ForEach-Object {
-  $virtioDrivers.Add([System.IO.FileInfo]$_) | Out-Null
+  $virtioDrivers.Add([System.IO.FileInfo]$PSItem) | Out-Null
 }
 
 $msisToInstall = New-Object -TypeName System.Collections.ArrayList
@@ -32,7 +37,7 @@ $msisToInstall.Add([System.IO.FileInfo]$(Join-Path -Path $VirtioImageDrive -Chil
 # get the images in the .wim to patch all of them
 $imagesInImage = New-Object -TypeName System.Collections.ArrayList
 Get-WindowsImage -ImagePath $installWim | ForEach-Object {
-  $imagesInImage.Add([Microsoft.Dism.Commands.BasicImageInfoObject]$_) | Out-Null
+  $imagesInImage.Add([Microsoft.Dism.Commands.BasicImageInfoObject]$PSItem) | Out-Null
 }
 
 $newDiskMounts = New-Object -TypeName System.Collections.ArrayList
@@ -46,8 +51,8 @@ trap {
   }
 }
 
-foreach ($image in $imagesInImage) {
-  [string]$imageName = $image.ImageName
+$imagesInImage | ForEach-Object {
+  [string]$imageName = $PSItem.ImageName
   [System.IO.FileInfo]$imageFile = "${imageName}.vhdx"
 
   [string[]]$qemuImgCreateArguments = @("create", "-f", "vhdx", "`"$imageFile`"", "40G")
@@ -77,28 +82,33 @@ foreach ($image in $imagesInImage) {
   Write-Output "Writing Image to Drive $($windowsDrive)"
   Expand-WindowsImage -ApplyPath $windowsDrive -CheckIntegrity -ImagePath $installWim -Name $imageName -SupportEa
 
-  Write-Output "::group::Adding VirtIO Drivers"
+  
   $virtioDrivers | ForEach-Object {
-    Write-Output $_.ToString()
-    Add-WindowsDriver -Path $windowsDrive -Driver $_.ToString() -ForceUnsigned | Out-Null
+    Write-Output "::group::Adding VirtIO Drivers"
+  } {
+    Write-Output $PSItem.ToString()
+    Add-WindowsDriver -Path $windowsDrive -Driver $PSItem.ToString() -ForceUnsigned | Out-Null
+  } {
+    Write-Output "::endgroup::"
   }
-  Write-Output "::endgroup::"
 
-  Write-Output "::group::Add aditional guest components"
   $msisToInstall | ForEach-Object {
+    Write-Output "::group::Add aditional guest components"
+  } {
     [string[]]$msiexecArguments = @(
       "/i",
-      $_,
+      $PSItem,
       "/l!",
-      "CON",
+      $logFile,
       "/qn",
       "/norestart",
       "TARGETDIR=$($windowsDrive)"
     )
     Write-Output "Running msiexec with $($msiexecArguments)"
     Start-Process -FilePath msiexec -ArgumentList $msiexecArguments -NoNewWindow -Wait
+  } {
+    Write-Output "::endgroup::"
   }
-  Write-Output "::endgroup::"
 
   Write-Output "::group::Add Bootloader"
   [string[]]$bcdbootArguments = @(
