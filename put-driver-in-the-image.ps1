@@ -1,5 +1,4 @@
 #Requires -modules @{ ModuleName="Dism"; ModuleVersion="3.0" }
-#Requires -PSEdition Core
 #Requires -RunAsAdministrator
 
 param (
@@ -127,6 +126,7 @@ $imagesInImage | ForEach-Object {
     "/v",
     "/f", "UEFI"
   )
+  Write-Output "bcdboot $($bcdbootArguments)"
   Start-Process -FilePath bcdboot.exe -ArgumentList $bcdbootArguments -NoNewWindow -Wait
   Write-Output "::endgroup::"
 
